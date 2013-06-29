@@ -267,8 +267,9 @@ Document = {
     my_file.close();
   },
   export_in: function(path,options){
-    if (options == undefined) {
-      Document.set_export_as_png_24();
+    if (!options || typeof options === 'number') {
+      options || (options = 24);
+      Document['set_export_as_png_' + options]();
     } else {
       fw.getDocumentDOM().setExportOptions(options);
     }
@@ -579,6 +580,62 @@ Pages = {
     doc.setDocumentCanvasSize({left:0, top: 0, right: doc.width, bottom: doc_height}, true);
   }
 };
+
+Layers = {
+  each: function(callback, skip_web_layers) {
+    var dom = fw.getDocumentDOM();
+    var layers = dom.layers;
+    var l = layers.length;
+
+    for (var i = 0 ; i < l ; i++) {
+        if (skip_web_layers && layers[i].layerType === "web") { continue; }
+        callback.call(this, layers[i], i);
+    }
+  }
+}
+
+
+SubLayers = {
+
+  each: function(callback) {
+    Layers.each(function(layer, layer_i) {
+      SubLayers.each_in(layer, function(sublayer, sublayer_i) {
+        callback.call(this, sublayer, layer_i, sublayer_i);
+      });
+    }, true);
+  },
+
+  each_in: function(layer, callback) {
+    var sublayers = layer.elems;
+    var l = sublayers.length;
+    for (var i = 0; i < l; i++) {
+        callback.call(this, sublayers[i], i);
+    }
+  },
+
+  hide_all: function() {
+    SubLayers.each(function(sublayer, layer_i, sublayer_i) {
+      dom.setElementVisible(0 , layer_i, sublayer_i, false);
+    });
+  },
+
+  show_all: function() {
+    SubLayers.each(function(sublayer, layer_i, sublayer_i) {
+      dom.setElementVisible(0 , layer_i, sublayer_i, true);
+    });
+  },
+
+  hide: function(sublayer) {
+    var dom = fw.getDocumentDOM();
+    dom.setElementVisibleByName(sublayer.name, false);
+  },
+
+  show: function(sublayer) {
+    var dom = fw.getDocumentDOM();
+    dom.setElementVisibleByName(sublayer.name, true);
+  }
+}
+
 
 Sort = {
   by_y: function(a,b){

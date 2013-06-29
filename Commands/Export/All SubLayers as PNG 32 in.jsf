@@ -1,0 +1,23 @@
+/**DOC**
+Exports all sublayers (layer elements) in current page as flattened (non editable) PNG files with a 32 bits color depth.
+The commands prompts you for a folder to export, and files are saved with the sublayer names as the file names.
+**DOC**/
+try {
+  fw.runScript(fw.appJsCommandsDir + "/bs.js");
+} catch(e){
+  alert("There was a problem running this command.\rThis is usually related to an installation problem, so please visit http://orangecommands.com and download an updated installer.\r\rSorry for the inconvenience.");
+};
+
+var folder_name = orangecommands.params || fw.browseForFolderURL("Choose an export folder",null);
+var export_file_path;
+
+SubLayers.hide_all();
+SubLayers.each(function(sublayer, layer_i, sublayer_i) {
+    SubLayers.show(sublayer);
+
+    export_file_path = Files.makePathFromDirAndFile(folder_name, sublayer.name + ".png");
+    Document.export_in(export_file_path, 32);
+
+    SubLayers.hide(sublayer);
+});
+SubLayers.show_all();
